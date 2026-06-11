@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบลงคะแนนเลือกนายกรัฐมนตรี (Interactive)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #F7D0D3; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* กล่องจำลองหน้าจอหลัก */
+        .monitor-container {
+            width: 100%;
+            max-width: 1200px;
+            aspect-ratio: 16 / 9; 
+            background-color: #F5CBD0; 
+            padding: 40px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        /* ส่วนตราสัญลักษณ์ */
+        .emblem-wrapper {
+            margin-bottom: 25px;
+        }
+        
+        .emblem {
+            width: 90px;
+            height: 90px;
+            border: 3px solid #D3434B;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #D3434B;
+            font-weight: bold;
+            font-size: 12px;
+            background: transparent;
+        }
+        .emblem::before {
+            content: "ครุฑ";
+            font-size: 16px;
+            color: #D3434B;
+            font-weight: 700;
+        }
+
+        /* หัวข้อหลัก */
+        .main-title {
+            font-size: 38px;
+            font-weight: 700;
+            color: #1A1A1A;
+            margin-bottom: 45px;
+            letter-spacing: 0.5px;
+        }
+
+        /* แถบชื่อสีน้ำเงินเข้ม */
+        .name-banner {
+            width: 100%;
+            background-color: #162464; 
+            color: #FFFFFF;
+            padding: 15px 45px;
+            font-size: 34px;
+            font-weight: 400;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            height: 80px;
+            transition: all 0.3s ease;
+        }
+
+        /* ส่วนพื้นที่แสดงผลการลงมติด้านล่าง */
+        .vote-section {
+            width: 100%;
+            display: flex;
+            margin-top: 15px;
+            padding: 0 45px;
+            gap: 20px;
+        }
+
+        /* กล่องคำว่า "ลงมติ" */
+        .vote-label {
+            background-color: #EAEAEA;
+            color: #0E29A8; 
+            font-size: 32px;
+            font-weight: 700;
+            width: 220px;
+            height: 85px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 2px;
+        }
+
+        /* กล่องช่องว่างขวามือสำหรับแสดงผลคะแนน */
+        .vote-value-box {
+            background-color: #ECECEC;
+            flex-grow: 1;
+            height: 85px;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            padding-left: 30px;
+        }
+
+        /* ข้อความผลการลงคะแนนที่จะปรากฏ */
+        .vote-result-text {
+            font-size: 34px;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+        
+        /* สีของข้อความแต่ละประเภท */
+        .text-agree { color: #008000; }     /* สีเขียว */
+        .text-disagree { color: #FF0000; }  /* สีแดง */
+        .text-abstain { color: #7F7F7F; }   /* สีเทา */
+
+        /* ===================================================
+           แผงควบคุมจำลอง (Control Panel) แยกส่วนไว้ด้านล่างหน้าจอ 
+           =================================================== */
+        .control-panel {
+            margin-top: 30px;
+            background: #ffffff;
+            padding: 20px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .panel-row {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        /* ปุ่มกดดีไซน์โมเดิร์นเพื่อให้ผู้ใช้งานกดง่าย */
+        .btn {
+            padding: 12px 28px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        /* สีปุ่มลงมติ */
+        .btn-agree { background-color: #2ecc71; color: white; }
+        .btn-agree:hover { background-color: #27ae60; }
+
+        .btn-disagree { background-color: #e74c3c; color: white; }
+        .btn-disagree:hover { background-color: #c0392b; }
+
+        .btn-abstain { background-color: #95a5a6; color: white; }
+        .btn-abstain:hover { background-color: #7f8c8d; }
+
+        .btn-clear { background-color: #f1c40f; color: #333; }
+        .btn-clear:hover { background-color: #f39c12; }
+
+        /* สีปุ่มเลื่อนรายชื่อ */
+        .btn-nav { background-color: #34495e; color: white; }
+        .btn-nav:hover { background-color: #2c3e50; }
+        .btn-nav:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <div class="monitor-container">
+<div class="emblem-wrapper">
+    <img src="https://i.ibb.co/fG2Q5dfJ/151-20260611155111.png" class="emblem" alt="ตราสัญลักษณ์">
+</div>
+
+        <h1 class="main-title">การลงคะแนนเลือกนายกรัฐมนตรี</h1>
+
+        <div class="name-banner" id="memberName">
+          ๑. นายกรวุฒิ เเก้วเขียว
+        </div>
+
+        <div class="vote-section">
+            <div class="vote-label">ลงมติ</div>
+            <div class="vote-value-box">
+                <div id="voteResult" class="vote-result-text"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="control-panel">
+        <div>
+            <div class="panel-title" style="text-align: center;">⚡ แผงควบคุมระบบลงคะแนนจำลอง</div>
+        </div>
+        
+        <div class="panel-row">
+            <button class="btn btn-agree" onclick="castVote('เห็นด้วย', 'text-agree')">เห็นด้วย</button>
+            <button class="btn btn-disagree" onclick="castVote('ไม่เห็นด้วย', 'text-disagree')">ไม่เห็นด้วย</button>
+            <button class="btn btn-abstain" onclick="castVote('งดออกเสียง', 'text-abstain')">งดออกเสียง</button>
+            <button class="btn btn-clear" onclick="castVote('', '')">ล้างคำตอบ</button>
+        </div>
+
+        <div class="panel-row">
+            <button class="btn btn-nav" id="btnPrev" onclick="changeMember(-1)">⏮️ รายชื่อก่อนหน้า</button>
+            <button class="btn btn-nav" id="btnNext" onclick="changeMember(1)">รายชื่อถัดไป ⏭️</button>
+        </div>
+    </div>
+
+    <script>
+        // 1. ฐานข้อมูลรายชื่อจำลองเพื่อทดสอบระบบเลื่อน
+        const membersList = [
+            "๑. นายกรวุฒิ เเก้วเขียว",
+            "๒. นายกัณฎิฑัตต์ สุขผล",
+            "๓. นายกิตติรัตน์ พงไพรศาล",
+            "๔. นายคุณภัทร เรืองโรจน์",
+            "๕. นายเดชะรัฐ ชอิทธิราชวัตร",
+            "๖. นายธีรศักดิ์ นาคประสงค์",
+            "๗. นายนุชนารถ จารุวงศ์เสถียร",
+            "๘. นายปรีชา เดชากุล",
+            "๙. นายผู้กอง ปลอมตัวมา",
+            "๑๐. นายฟามเหลือง ไก่เกร่ง",
+            "๑๑. นายรณกร เจริญพงศ์",
+            "๑๒. นายวาริช บรรยายรัตน",
+            "๑๓. นายวันมูหะมัดนอร์ ซัดหมูทุกวัน",
+            "๑๔. นายศิรีพระดุง ผัดไข่",
+            "๑๕. นายสมชาย แสวงงาน",
+            "๑๖. นายสมศักดิ์ ลักทรัพย์",
+            "๑๗. นายสุขกาย พาเกรียน",
+            "๑๘. นายอภินัทธ์ ศรีมุกดา",
+        ];
+
+        // เริ่มต้นที่รายชื่อลำดับที่ 1 (คือ นายชนกันต์ ตามรูปภาพของคุณ)
+        let currentIndex = 0; 
+
+        // เก็บสถานะการลงคะแนนของแต่ละคนไว้ (เผื่อกดเลื่อนไปมาแล้วคะแนนไม่หาย)
+        let votesStorage = {};
+
+        // ฟังก์ชันอัปเดตหน้าจอรายชื่อ
+        function updateDisplay() {
+            // แสดงชื่อปัจจุบัน
+            document.getElementById('memberName').innerText = membersList[currentIndex];
+            
+            // ดึงผลการลงคะแนนเก่าของคนนี้มาแสดง (ถ้ามี)
+            const savedVote = votesStorage[currentIndex] || { text: '', className: '' };
+            const resultDiv = document.getElementById('voteResult');
+            resultDiv.innerText = savedVote.text;
+            resultDiv.className = 'vote-result-text ' + savedVote.className;
+
+            // ควบคุมปุ่มเปิด-ปิด ย้อนกลับ/ถัดไป ไม่ให้เลยขอบเขตรายชื่อ
+            document.getElementById('btnPrev').disabled = (currentIndex === 0);
+            document.getElementById('btnNext').disabled = (currentIndex === membersList.length - 1);
+        }
+
+        // ฟังก์ชันกดลงมติ
+        function castVote(voteType, className) {
+            // บันทึกผลลงในความจำ
+            votesStorage[currentIndex] = { text: voteType, className: className };
+            
+            // แสดงผลบนหน้าจอทันที
+            const resultDiv = document.getElementById('voteResult');
+            resultDiv.innerText = voteType;
+            resultDiv.className = 'vote-result-text ' + className;
+        }
+
+        // ฟังก์ชันเลื่อนรายชื่อ ไปข้างหน้า (+1) หรือ ย้อนกลับ (-1)
+        function changeMember(direction) {
+            currentIndex += direction;
+            updateDisplay();
+        }
+
+        // เรียกใช้งานครั้งแรกตอนโหลดหน้าเว็บ
+        updateDisplay();
+    </script>
+
+</body>
+</html>
