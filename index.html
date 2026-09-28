@@ -301,6 +301,11 @@
                 });
 
                 if (names.length === 0) throw new Error("ไม่พบรายชื่อ");
+
+                // เรียงตามพยัญชนะไทย โดยตัดคำนำหน้า (นาย, ดร., พล.อ ฯลฯ) ออกก่อนเทียบ
+                const sortKey = n => n.replace(/^(นางสาว|นาง|นาย|พล\.?\s?อ\.?|ดร\.?)\s*/, "");
+                names.sort((a, b) => sortKey(a).localeCompare(sortKey(b), "th"));
+
                 membersList = names.map((n, i) => toThaiNum(i + 1) + ". " + n);
                 currentIndex = 0;
                 votesStorage = {};
